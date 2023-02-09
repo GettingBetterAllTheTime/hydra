@@ -1,0 +1,134 @@
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth - 100;
+canvas.height = window.innerHeight - 100;
+
+var img2 = new Image();
+img2.src='hydra.png'
+
+//네모 그리는 법//
+
+// 방법1.
+//초록색 네모를 그려주세요
+// ctx.fillStyle = 'green';
+//왼쪽위에서 10,10 좌표에다가 100*100사이즈 네모를 그려주세요
+// ctx.fillRect(10,10,100,100);
+
+// 방법2. 
+// 등장 캐릭터의 속성부터 object자료에 정리해두면 편리
+var dino = { //공룡 등장 좌표
+    x: 10, //왼쪽에서부터 10px
+    y: 200, // 위에서부터 200px 자리에 공룡 등장
+    width: 46, // 공룡의 폭
+    height: 50,// 공룡의 높이
+    draw() {
+        ctx.fillStyle = 'green';
+        // ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.drawImage(img2, this.x, this.y);
+    }
+}
+
+var img1 = new Image();
+// img1.src = '이미지경로'
+
+//공룡 등장시키고 싶으면 dino.draw();
+
+
+//장애물도 역시 속성부터 object 자료에 정리해두면 편리
+// 근데 장애물들은 width, height 이런게 각각 다를 수도 -> 비슷한 objcet가 많이 필요할듯 -> 보통은 class로 만드는게 일반적
+//class? object 비슷한거 막 뽑아내는 기계 
+class Cactus {
+    constructor() {
+        this.x = 500;
+        this.y = 200;
+        this.width = 50;
+        this.height = 50;
+    }
+    draw() {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        // ctx.drawImage(img1, this.x, this.y);
+    }
+}
+
+// dino.x += 1;
+
+//장애물(선인장) 하나 뽑고 싶으면
+//클래스 사용법
+
+//애니메이션을 만들려면 1초에 60번 x++ 해줘야
+//1초에 60번 코드 실행하기
+
+var timer = 0;
+var cactus여러개 = [];
+var 점프timer = 0;
+var animation;
+function 프레임마다실행할거() {
+    animation = requestAnimationFrame(프레임마다실행할거);
+    timer++;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //120프레임마다 {장애물} 이쁘게 생성하고 array에 집어넣음
+    if (timer % 200 === 0) {
+        var cactus = new Cactus();
+        cactus여러개.push(cactus);
+    };
+
+    //array에 있던거 다 draw()해주세요
+    cactus여러개.forEach((a, i, o) => {
+        //x좌표가 0미만이면 제거
+        if (a.x < -50) {
+            //제거해라~
+            o.splice(i, 1);
+        }
+        // a.x--;
+        a.x-=4.5;
+
+        //충돌체크는 아마 여기서 해야 왜냐면 주인공 vs 모든 장애물 충돌체크해야하니깐요
+        충돌하냐(dino, a);
+        a.draw();
+    })
+
+    if (점프중 == true) {
+        // dino.y--;
+        dino.y-=4;
+        점프timer++;
+    }
+
+    if (점프중 == false) {
+        if (dino.y < 200) {
+            // dino.y++;
+            dino.y+=4;
+        }
+    }
+
+    //100프레임 지나면 dino.y--점프 그만해주셈
+    if (점프timer > 30) {
+        점프중 = false;
+        점프timer = 0;
+    }
+    dino.draw();
+}
+
+프레임마다실행할거();
+
+//충돌확인
+function 충돌하냐(dino, cactus) {
+    var x축차이 = cactus.x - (dino.x + dino.width);
+    var y축차이 = cactus.y - (dino.y + dino.height);
+    if (x축차이 < 0 && y축차이 < 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        cancelAnimationFrame(animation);
+    }
+}
+
+//2d 게임은 공룡은 가만히 있고 배경, 장애물들이 움직이는 원리임
+//장애물들이 스폰이 되서 좌측으로 서서히 이동하게 만들기
+
+var 점프중 = false;
+//스페이스바 누르면 점프
+document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space') {
+        점프중 = true;
+    }
+});
